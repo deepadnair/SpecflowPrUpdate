@@ -2,74 +2,130 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using SpecflowPrUpdate.Feature.Pages;
 using SpecflowPrUpdate.Pages;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Assist;
 
 namespace SpecflowPrUpdate.Feature
 {
     [Binding]
     public class ProfileLoginSteps
-       
-
     {
-        IWebDriver driver = new ChromeDriver();
-        
-        
+        public static IWebDriver webDriver = new ChromeDriver();
         Loginpage loginPage = null;
-       
+        readonly Profilepage1 Profile = new Profilepage1(webDriver);
+        SkillPage Skilpage = new SkillPage(webDriver);
 
         [Given(@"I Navigate to the HomePage for Login")]
         public void GivenINavigateToTheHomePageForLogin()
         {
-           
 
-            driver.Navigate().GoToUrl("http://localhost:5000/Home");
-            driver.Manage().Window.Maximize();
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(40);
-            Loginpage loginPage = new Loginpage(driver);
+
+            webDriver.Navigate().GoToUrl("http://localhost:5000/Home");
+            webDriver.Manage().Window.Maximize();
+
+            loginPage = new Loginpage(webDriver);
+
         }
-        
-        [Given(@"I Click SignIn button")]
-        public void GivenIClickSignInButton()
+
+        [Given(@"I Click SignIn link")]
+        public void GivenIClickSignInLink()
         {
-            driver.FindElement(By.LinkText("Sign In")).Click();
-          //  loginPage.ClickSignIn();
+            loginPage.ClickLogin();
+
         }
+
 
         [Given(@"I Login with Username '(.*)' and Password '(.*)' on the Login Page")]
         public void GivenILoginWithUsernameAndPasswordOnTheLoginPage(string UserName, string Password)
         {
-             driver.FindElement(By.Name("email")).SendKeys("deepa.nair.d@gmail.com");                
-             driver.FindElement(By.Name("password")).SendKeys("Industry15Connect");
-           
+            loginPage.Login(UserName, Password);
         }
-        
-        [Given(@"I Click Login button")]
-        public void GivenIClickLoginButton()
+
+
+        [Given(@"I Click SignIn button to signIn to profile Page")]
+        public void GivenIClickSignInButtonToSignInToProfilePage()
         {
-            // loginPage.Clickloginbutton();
-
-            driver.FindElement(By.CssSelector("button[class='fluid ui teal button']")).Click();
-           
-
-            var waitt = new WebDriverWait(driver, TimeSpan.FromSeconds(1000));
-            var div = waitt.Until(ExpectedConditions.ElementToBeClickable(By.LinkText("Profile")));
-            div.Click();
-
+            loginPage.ClickLoginButton();
+            Thread.Sleep(5000);
         }
-        [Then(@"I should login to Profile page")]
-        public void ThenIShouldLoginToProfilePage()
+
+        [Given(@"Clicking on the Profile tab")]
+        public void GivenClickingOnTheProfileTab()
         {
+            String currentURL = webDriver.Url;
+            Assert.AreEqual(currentURL, "http://localhost:5000/Account/Profile");
+            Profile.ClickProTab();
+        }
 
-            String actualurl = "http://localhost:5000/Account/Profile";
-
-            String expectedurl = driver.Url;
-            Assert.AreEqual(expectedurl, actualurl);
+        [Given(@"Update First Name '(.*)'  and LastName  '(.*)'")]
+        public void GivenUpdateFirstNameAndLastName(string firstName, string lastName)
+        {
+            Profile.NameUpdate(firstName, lastName);
+            Assert.AreEqual(firstName, "divya");
+            Assert.AreEqual(lastName, "Kumar");
 
         }
 
-        
+        [Given(@"update availability using availabilty tab")]
+        public void GivenUpdateAvailabilityUsingAvailabiltyTab()
+        {
+            Profile.AvailabiTimeLnk();
 
+        }
+
+        [Given(@"use hour tab and update working hours")]
+        public void GivenUseHourTabAndUpdateWorkingHours()
+        {
+            Profile.AvailabiHourLnk();
+        }
+
+        [Given(@"Use Ear target  tab to update the  the earning per month")]
+        public void GivenUseEarTargetTabToUpdateTheTheEarningPerMonth()
+        {
+            Profile.AvailabiTargetLnk();
+        }
+
+        [Given(@"Use on Add description")]
+        public void GivenUseOnAddDescription()
+        {
+            Profile.AvailabiDesLnk();
+        }
+
+
+        [Given(@"I Click on the Skills Tab and Click Add Button")]
+        public void GivenIClickOnTheSkillsTabAndClickAddButton()
+        {
+            Skilpage.SkilLnk();
+            Skilpage.Skilbtn();
+            Thread.Sleep(2000);
+        }
+
+        [Given(@"I add the skills and level and update")]
+        public void GivenIAddTheSkillsAndLevelAndUpdate(Table table)
+        {
+            foreach (TableRow row in table.Rows)
+            {
+                foreach (string value in row.Values)
+                {
+                    webDriver.FindElement(By.CssSelector("input[placeholder='Add Skill']")).SendKeys(value);
+                    Skilpage.SkillLevel();
+                    Skilpage.UpdatSkillBtn();
+                    Skilpage.Skilbtn();
+                    Thread.Sleep(2000);
+                }
+            }
+        }
+
+        [Given(@"Check for delete function")]
+        public void GivenCheckForDeleteFunction()
+        {
+            Skilpage.DelIcon();
+            webDriver.Close();
+        }
     }
 }
